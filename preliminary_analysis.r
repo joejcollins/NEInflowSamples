@@ -40,4 +40,8 @@ map_centre <- c(lon = -2.85, lat = 52.80) # chosen by inspection
 map <- qmap(map_centre) 
 map + geom_point(aes(x=Lng, y=Lat), data=sites, col = km$cluster)
 
+# Zoom in in the Marton cluster of 10
+map_centre <- c(lon = -3.045, lat = 52.623) # chosen by inspection
+map <- qmap(map_centre, zoom = 15) 
+map + geom_point(aes(x=Lng, y=Lat), data=sites, col = km$cluster)
 
