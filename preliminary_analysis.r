@@ -13,7 +13,7 @@ rn("Nitrogen...Total.as.N..mg.l.", "Nitrogen")
 rn("Phosphorus...Total.as.P..mg.l.", "Phosphorus")
 rn("Alkalinity.to.pH.4.5.as.CaCO3..mg.l.", "Alkalinity")
 rn("Ammoniacal.Nitrogen.as.N..mg.l.", "Nitrogen.Ammoniacal")
-rn("Chloride..mg.l", "Chloride")
+rn("Chloride..mg.l.", "Chloride")
 rn("Nitrite.as.N..mg.l.", "Nitrite")
 rn("Nitrogen...Total.Oxidised.as.N..mg.l.", "Nitrogen.Oxidised")
 rn("Orthophosphate..reactive.as.P..mg.l.", "Orthophosphate")
@@ -70,16 +70,41 @@ map <- qmap(map_centre, zoom = 15)
 map + geom_point(aes(x=Lng, y=Lat), data=sites, col = km$cluster)
 
 
-# Remove non numeric from 
-scratch <- samples[,c("Phosphorus...Total.as.P..mg.l.")]
-scratch <- gsub("[^\\d]", "", scratch, fixed = TRUE)
-scratch <- as.numeric(scratch)
-hist(scratch)
+# Let's check out the distribution of measurments
+# A function to standardised the graphs
+graf <- function(column.name){
+  scratch <- samples[,c(column.name)]
+  scratch <- gsub("[^\\d]", "", scratch, fixed = TRUE)
+  scratch <- as.numeric(scratch)
+  title <- paste("Histogram of", column.name, sep = " ")
+  hist(main = title, scratch, xlab = column.name, breaks = 20)
+}
+# Complete graph-arama
+graf("BOD")
+graf("Nitrogen")             
+graf("Phosphorus")           
+graf("Alkalinity")          
+graf("Nitrogen.Ammoniacal")
+graf("Chloride")
+graf("Nitrite") 
+graf("Nitrogen.Oxidised") 
+graf("Orthophosphate")       
+graf("Silicate")
+graf("Phosphate")             
+graf("Conductivity")
+graf("Turbidity")
+graf("Solids")
+graf("Calcium")              
+graf("Magnesium")
+graf("Potassium")
+graf("Sodium")
 
-# Remove non numeric from 
-shit <- samples[,c("BOD.5.Day.ATU..mg.l.")]
-shit <- gsub("[^\\d]", "", shit, fixed = TRUE)
-shit <- as.numeric(shit)
-hist(shit, breaks = 50)
+"
+The graphs for calcium, conductivity, silicate, alkalinity look like they might have been censored.
+There appears to be a spike at one end of the distribution, like the data might have contained
+a bunch of < or > but inspection reveals that silicate contains only one reading with < (<0.200).
+"
 
-colnames(samples)
+
+
+
