@@ -3,6 +3,30 @@
 # Import the water inflow sample data
 samples <- read.csv("./water_inflow_data.csv",  stringsAsFactors=FALSE)
 
+# Rename all the measurements for easier reading
+rn <- function(old.name, new.name){
+  names(samples)[names(samples) == old.name] <<- new.name
+}
+
+rn("BOD.5.Day.ATU..mg.l.", "BOD")
+rn("Nitrogen...Total.as.N..mg.l.", "Nitrogen")
+rn("Phosphorus...Total.as.P..mg.l.", "Phosphorus")
+rn("Alkalinity.to.pH.4.5.as.CaCO3..mg.l.", "Alkalinity")
+rn("Ammoniacal.Nitrogen.as.N..mg.l.", "Nitrogen.Ammoniacal")
+rn("Chloride..mg.l", "Chloride")
+rn("Nitrite.as.N..mg.l.", "Nitrite")
+rn("Nitrogen...Total.Oxidised.as.N..mg.l.", "Nitrogen.Oxidised")
+rn("Orthophosphate..reactive.as.P..mg.l.", "Orthophosphate")
+rn("Silicate..reactive.as.SiO2..mg.l.", "Silicate")
+rn("Phosphate...Total.as.P..mg.l.", "Phosphate")
+rn("Conductivity.at.20C..uS.cm.", "Conductivity")
+rn("Turbidity..NTU.", "Turbidity")
+rn("Solids..Suspended.at.105.C..mg.l.", "Solids")
+rn("Calcium..mg.l.", "Calcium")
+rn("Magnesium..mg.l.", "Magnesium")
+rn("Potassium..mg.l.", "Potassium")
+rn("Sodium..mg.l.", "Sodium")
+
 # Remove the spaces from the grid references
 samples$Grid.reference <- gsub(" ", "", samples$Grid.reference, fixed = TRUE)
 
