@@ -149,6 +149,13 @@ baduns("Sodium")
 scratch <- as.data.frame(table(samples$Name))
 colnames(scratch) <- c("Name", "Freq")
 sites <- merge(sites, scratch, by="Name")
-scratch <- sites[sites$Freq >= 9,]
+scratch <- sites[sites$Freq >= 8,]
+scratch <- merge(scratch, samples, by = "Name")
+
+# The dates are ambiguous so stick in the century using a regex
+scratch$Sample.taken <- gsub("(\\d{2}-[A-Z]{3}-)", "\\120", scratch$Sample.taken, perl = TRUE)
+scratch$Sample.taken <- as.Date(scratch$Sample.taken, "%d-%b-%Y")
+
+with(scratch[scratch$Id == 1, ], plot(Nitrogen.Total ~ Sample.taken, type = "l"))
 
 
