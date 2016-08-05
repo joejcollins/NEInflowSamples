@@ -45,3 +45,17 @@ map_centre <- c(lon = -3.045, lat = 52.623) # chosen by inspection
 map <- qmap(map_centre, zoom = 15) 
 map + geom_point(aes(x=Lng, y=Lat), data=sites, col = km$cluster)
 
+
+# Remove non numeric from 
+scratch <- samples[,c("Phosphorus...Total.as.P..mg.l.")]
+scratch <- gsub("[^\\d]", "", scratch, fixed = TRUE)
+scratch <- as.numeric(scratch)
+hist(scratch)
+
+# Remove non numeric from 
+shit <- samples[,c("BOD.5.Day.ATU..mg.l.")]
+shit <- gsub("[^\\d]", "", shit, fixed = TRUE)
+shit <- as.numeric(shit)
+hist(shit, breaks = 50)
+
+colnames(samples)
