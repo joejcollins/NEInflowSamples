@@ -1,7 +1,7 @@
 ## Preliminary analysis of water inflow data
 
 # Import the water inflow sample data
-samples <- read.csv("./water_inflow_data.csv",  stringsAsFactors=FALSE)
+samples <- read.csv("./water_inflow_data.csv",  stringsAsFactors = FALSE)
 
 # Rename all the measurements for easier reading
 rn <- function(old.name, new.name){
@@ -9,7 +9,7 @@ rn <- function(old.name, new.name){
 }
 
 rn("BOD.5.Day.ATU..mg.l.", "BOD")
-rn("Nitrogen...Total.as.N..mg.l.", "Nitrogen")
+rn("Nitrogen...Total.as.N..mg.l.", "Nitrogen.Total")
 rn("Phosphorus...Total.as.P..mg.l.", "Phosphorus")
 rn("Alkalinity.to.pH.4.5.as.CaCO3..mg.l.", "Alkalinity")
 rn("Ammoniacal.Nitrogen.as.N..mg.l.", "Nitrogen.Ammoniacal")
@@ -27,17 +27,20 @@ rn("Magnesium..mg.l.", "Magnesium")
 rn("Potassium..mg.l.", "Potassium")
 rn("Sodium..mg.l.", "Sodium")
 
+# Also remane the comment because it actually contains the site name
+rn("Comment", "Name")
+
 # Remove the spaces from the grid references
 samples$Grid.reference <- gsub(" ", "", samples$Grid.reference, fixed = TRUE)
 
 # How many site names are there?
-length(unique(samples$Comment))
+length(unique(samples$Name))
 
 # How many grid references are there?
 length(unique(samples$Grid.reference))
 
 # How many pairs of comments and grid references?
-sites <- data.frame(OSGrid = samples$Grid.reference, Name = samples$Comment)
+sites <- data.frame(OSGrid = samples$Grid.reference, Name = samples$Name)
 sites <- unique(sites)
 nrow(sites)
 
@@ -74,14 +77,14 @@ map + geom_point(aes(x=Lng, y=Lat), data=sites, col = km$cluster)
 # A function to standardised the graphs
 graf <- function(column.name){
   scratch <- samples[,c(column.name)]
-  scratch <- gsub("[^\\d]", "", scratch, fixed = TRUE)
+  scratch <- gsub("[^.0-9]+", "", scratch) # just the numbers and nothing else
   scratch <- as.numeric(scratch)
   title <- paste("Histogram of", column.name, sep = " ")
   hist(main = title, scratch, xlab = column.name, breaks = 20)
 }
 # Complete graph-arama
 graf("BOD")
-graf("Nitrogen")             
+graf("Nitrogen.Total")             
 graf("Phosphorus")           
 graf("Alkalinity")          
 graf("Nitrogen.Ammoniacal")
@@ -105,6 +108,47 @@ There appears to be a spike at one end of the distribution, like the data might 
 a bunch of < or > but inspection reveals that silicate contains only one reading with < (<0.200).
 "
 
+# Let's find the bad boys
+baduns <- function(column.name){
+  # The column.name is passed as a string so the column has to be accessed using [] notation
+  # rather than directly.
+  scratch <- samples[,c("Name", column.name)]
+  scratch[,c(column.name)] <- gsub("[^.0-9]+", "", scratch[,c(column.name)]) # just the numbers and nothing else
+  scratch[,c(column.name)] <- as.numeric(scratch[,c(column.name)]) # then convert to numeric
+  scratch <- aggregate(scratch[,column.name], by = list(scratch$Name), max)
+  scratch <- scratch[order(-scratch$x),] # Bad boys at the top
+  names(scratch)[names(scratch) == "Group.1"] <- "Name"
+  scratch <- head(scratch, n=8) # Calcium etc... have only been recorded for 8 sites.
+  print(scratch)
+  scratch <- scratch[order(scratch$x),] # reverse the order
+  bp <- barplot(scratch$x, xlab=column.name, horiz=TRUE)
+  text(0, bp, scratch$Name, cex=1, pos=4)
+}
 
+baduns("Nitrogen.Total")
+baduns("BOD")
+baduns("Nitrogen.Total")             
+baduns("Phosphorus")           
+baduns("Alkalinity")          
+baduns("Nitrogen.Ammoniacal")
+baduns("Chloride")
+baduns("Nitrite") 
+baduns("Nitrogen.Oxidised") 
+baduns("Orthophosphate")       
+baduns("Silicate")
+baduns("Phosphate")             
+baduns("Conductivity")
+baduns("Turbidity")
+baduns("Solids")
+baduns("Calcium")              
+baduns("Magnesium")
+baduns("Potassium")
+baduns("Sodium")
+
+# Sites with 9 or more samples.
+scratch <- as.data.frame(table(samples$Name))
+colnames(scratch) <- c("Name", "Freq")
+sites <- merge(sites, scratch, by="Name")
+scratch <- sites[sites$Freq >= 9,]
 
 
