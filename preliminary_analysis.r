@@ -197,5 +197,3 @@ timegraph("Calcium")
 timegraph("Magnesium")
 timegraph("Potassium")
 timegraph("Sodium")
-
-
