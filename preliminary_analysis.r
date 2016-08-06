@@ -9,6 +9,8 @@ rn <- function(old.name, new.name){
   names(samples)[names(samples) == old.name] <<- new.name
 }
 
+rn("Flow.rate..litres.sec.", "Flow")
+
 rn("BOD.5.Day.ATU..mg.l.", "BOD")
 rn("Nitrogen...Total.as.N..mg.l.", "Nitrogen.Total")
 rn("Phosphorus...Total.as.P..mg.l.", "Phosphorus")
@@ -126,7 +128,6 @@ baduns <- function(column.name){
   text(0, bp, scratch$Name, cex=1, pos=4)
 }
 
-baduns("Nitrogen.Total")
 baduns("BOD")
 baduns("Nitrogen.Total")             
 baduns("Phosphorus")           
@@ -159,19 +160,25 @@ scratch$Sample.taken <- strptime(scratch$Sample.taken, "%d-%b-%Y %H:%M")
 scratch$Sample.taken <- as.Date(scratch$Sample.taken)
 scratch$Sample.taken <- as.POSIXct(scratch$Sample.taken, "%d-%b-%Y")
 
+# The flows include some comments to the effect that there is no flow so these are made into zeros
+scratch$Flow <- as.numeric(scratch$Flow)
+scratch$Flow[is.na(scratch$Flow)] <- 0
+
 library(ggplot2)
 library(scales)
 
 # Let's graph the ones with reasonable amounts of data
 timegraph <- function(column.name){
-  ggplot(scratch, aes(x=Sample.taken, y=scratch[,c(column.name)], colour=Name, group=Name)) +
+  scratch[,c(column.name)] <- gsub("[^.0-9]+", "", scratch[,c(column.name)]) # just the numbers and nothing else
+  scratch[,c(column.name)] <- as.numeric(scratch[,c(column.name)])
+  scratch$total <- scratch[,c(column.name)] * scratch$Flow
+  ggplot(scratch, aes(x = Sample.taken, y = scratch$total, colour=Name, group=Name)) +
     geom_line() +
     scale_x_datetime(date_breaks = "1 month", date_labels = "%b") +
     xlab("2015-2016") + 
-    ylab(column.name)
+    ylab(paste0(column.name, " * Flow"))
 }
 
-timegraph("Nitrogen.Total")
 timegraph("BOD")
 timegraph("Nitrogen.Total")             
 timegraph("Phosphorus")           
