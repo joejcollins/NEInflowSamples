@@ -2,6 +2,7 @@
 
 # Import the water inflow sample data
 samples <- read.csv("./water_inflow_data.csv",  stringsAsFactors = FALSE)
+# I did edit a couple of the dates because R seems to struggle with dates (but then don't we all)
 
 # Rename all the measurements for easier reading
 rn <- function(old.name, new.name){
@@ -154,8 +155,38 @@ scratch <- merge(scratch, samples, by = "Name")
 
 # The dates are ambiguous so stick in the century using a regex
 scratch$Sample.taken <- gsub("(\\d{2}-[A-Z]{3}-)", "\\120", scratch$Sample.taken, perl = TRUE)
-scratch$Sample.taken <- as.Date(scratch$Sample.taken, "%d-%b-%Y")
+scratch$Sample.taken <- strptime(scratch$Sample.taken, "%d-%b-%Y %H:%M")
+scratch$Sample.taken <- as.Date(scratch$Sample.taken)
+scratch$Sample.taken <- as.POSIXct(scratch$Sample.taken, "%d-%b-%Y")
 
-with(scratch[scratch$Id == 1, ], plot(Nitrogen.Total ~ Sample.taken, type = "l"))
+library(ggplot2)
+library(scales)
 
+# Let's graph the ones with reasonable amounts of data
+timegraph <- function(column.name){
+  ggplot(scratch, aes(x=Sample.taken, y=scratch[,c(column.name)], colour=Name, group=Name)) +
+    geom_line() +
+    scale_x_datetime(date_breaks = "1 month", date_labels = "%b") +
+    xlab("2015-2016") + 
+    ylab(column.name)
+}
 
+timegraph("Nitrogen.Total")
+timegraph("BOD")
+timegraph("Nitrogen.Total")             
+timegraph("Phosphorus")           
+timegraph("Alkalinity")          
+timegraph("Nitrogen.Ammoniacal")
+timegraph("Chloride")
+timegraph("Nitrite") 
+timegraph("Nitrogen.Oxidised") 
+timegraph("Orthophosphate")       
+timegraph("Silicate")
+timegraph("Phosphate")             
+timegraph("Conductivity")
+timegraph("Turbidity")
+timegraph("Solids")
+timegraph("Calcium")              
+timegraph("Magnesium")
+timegraph("Potassium")
+timegraph("Sodium")
