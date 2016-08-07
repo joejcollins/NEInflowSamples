@@ -283,11 +283,13 @@ timegraph <- function(column.name, df){
   df[,c(column.name)] <- gsub("[^.0-9]+", "", df[,c(column.name)]) # just the numbers and nothing else
   df[,c(column.name)] <- as.numeric(df[,c(column.name)])
   df$total <- df[,c(column.name)] * df$Flow
-  ggplot(df, aes(x = Sample.taken, y = df$total, colour=Name, group=Name)) +
+  # assign the graph to a variable so it can be printed explicitly
+  plot <- ggplot(df, aes(x = Sample.taken, y = df$total, colour=Name, group=Name)) +
     geom_line() +
     scale_x_datetime(date_breaks = "1 month", date_labels = "%b") +
     xlab("2015-2016") + 
     ylab(paste0(column.name, " * Flow"))
+  print(plot)
 }
 
 timegraph("BOD", scratch)
@@ -296,12 +298,63 @@ timegraph("BOD", scratch)
 The graph with all the sites on looks a bit chaotic so 
 it might be as well to separate out each of the meres.
 
-<<separate meres through the year>>=
-scratchmere <- scratch[startsWith(scratch$Name, "Cole"), ]
-timegraph("BOD", scratchmere)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variation Through the Year Cole Mere}
 
+Calcium, Magnesium, Potassium and Sodium aren't included because there were only a few measurements.
+A graph with three points isn't much of a graph.
+
+<<cole mere through the year>>=
+scratchmere <- scratch[startsWith(scratch$Name, "Cole"), ]
+alltimegraphs <- function(df){
+  timegraph("BOD", df)
+  timegraph("Nitrogen.Total", df)             
+  timegraph("Phosphorus", df)          
+  timegraph("Alkalinity", df)         
+  timegraph("Nitrogen.Ammoniacal", df)
+  timegraph("Chloride", df)
+  timegraph("Nitrite", df)
+  timegraph("Nitrogen.Oxidised", df)
+  timegraph("Orthophosphate", df)       
+  timegraph("Silicate", df)
+  timegraph("Phosphate", df)             
+  timegraph("Conductivity", df)
+  timegraph("Turbidity", df)
+  timegraph("Solids", df)
+}
+alltimegraphs(scratchmere)
 @
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variation Through the Year Crose Mere}
 
+<<crose mere through the year>>=
+scratchmere <- scratch[startsWith(scratch$Name, "Crose"), ]
+alltimegraphs(scratchmere)
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variation Through the Year Marton Pool}
+
+<<marton pool through the year>>=
+scratchmere <- scratch[startsWith(scratch$Name, "Marton"), ]
+alltimegraphs(scratchmere)
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variation Through the Year Sweat Mere}
+
+<<sweat mere through the year>>=
+scratchmere <- scratch[startsWith(scratch$Name, "Sweat"), ]
+alltimegraphs(scratchmere)
+@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variation Through the Year White Mere}
+
+<<white mere through the year>>=
+scratchmere <- scratch[startsWith(scratch$Name, "White"), ]
+alltimegraphs(scratchmere)
+@
 
 \end{document}
