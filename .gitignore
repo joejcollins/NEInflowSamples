@@ -33,6 +33,7 @@ vignettes/*.pdf
 *.synctex.gz
 *.tex
 framed.sty
+/figure
 
 
 # Temporary files created by R markdown
