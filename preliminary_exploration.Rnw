@@ -4,7 +4,6 @@
 \usepackage[UKenglish]{isodate}
 \usepackage{wordlike} 
 \usepackage{hyperref}
-
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1ex}
 
@@ -141,6 +140,166 @@ map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering, cex = 2)
 map_centre <- c(lon = -2.850, lat = 52.883) # chosen by inspection
 map <- qmap(map_centre, zoom = 13) 
 map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering, cex = 2)
+@
+
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Distribution of measurements}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Many of the measurements are marked `less than' some value,
+so it is possible that the distributions are censored in some way.
+We should look at the distributions for each of the measurements.
+The graphs for calcium, conductivity, silicate, alkalinity look like they might have been censored.
+There appears to be a spike at one end of the distribution, like the data might have contained
+a bunch of < or > but inspection reveals that silicate contains only one reading with < (<0.200).
+So it looks like there is no need to adjust for censoring.
+
+<<distributions of measurements>>=
+# Let's check out the distribution of measurments
+# A function to standardised the graphs
+graf <- function(column.name){
+  scratch <- samples[,c(column.name)]
+  scratch <- gsub("[^.0-9]+", "", scratch) # just the numbers and nothing else
+  scratch <- as.numeric(scratch)
+  title <- paste("Histogram of", column.name, sep = " ")
+  hist(main = title, scratch, xlab = column.name, breaks = 20)
+}
+# Complete graph-arama
+graf("BOD")
+graf("Nitrogen.Total")             
+graf("Phosphorus")           
+graf("Alkalinity")          
+graf("Nitrogen.Ammoniacal")
+graf("Chloride")
+graf("Nitrite") 
+graf("Nitrogen.Oxidised") 
+graf("Orthophosphate")       
+graf("Silicate")
+graf("Phosphate")             
+graf("Conductivity")
+graf("Turbidity")
+graf("Solids")
+graf("Calcium")              
+graf("Magnesium")
+graf("Potassium")
+graf("Sodium")
+@
+
+Since none of the < signs seem to be relevant we might as well
+ignore (remove) them from here on.
+Then we don't have to worry about them.
+
+<<remove less than>>=
+removelessthan <- function(column){
+  column <- gsub("[^.0-9]+", "", column) # just the numbers and nothing else
+  column <- as.numeric(column)
+  return(column)
+}
+samples$BOD <- removelessthan(samples$BOD)
+samples$Phosphorus <- removelessthan(samples$Phosphorus)           
+samples$Nitrogen.Ammoniacal <- removelessthan(samples$Nitrogen.Ammoniacal)
+samples$Nitrite <- removelessthan(samples$Nitrite) 
+samples$Nitrogen.Oxidised <- removelessthan(samples$Nitrogen.Oxidised)
+samples$Orthophosphate <- removelessthan(samples$Orthophosphate)       
+samples$Silicate <- removelessthan(samples$Silicate)
+samples$Phosphate <- removelessthan(samples$Phosphate)           
+samples$Turbidity <- removelessthan(samples$Turbidity)
+samples$Solids <- removelessthan(samples$Solids)
+@
+
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Worst Offenders}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+For a lot of the measurements the distribution is very skewed with some extreme outliers.
+It makes you wonder which are the worst offenders.
+So for interest let's  list the locations with the worst (=highest) 8 measurements.
+
+<<worst offenders>>=
+# Let's find the bad boys
+baduns <- function(column.name){
+  # The column.name is passed as a string so the column has to be accessed using [] notation
+  # rather than directly.
+  scratch <- samples[,c("Name", column.name)]
+  scratch <- aggregate(scratch[,column.name], by = list(scratch$Name), max)
+  scratch <- scratch[order(-scratch$x),] # Bad boys at the top
+  names(scratch)[names(scratch) == "Group.1"] <- "Name"
+  scratch <- head(scratch, n=8) # Calcium etc... have only been recorded for 8 sites.
+  scratch <- scratch[order(scratch$x),] # reverse the order
+  bp <- barplot(scratch$x, xlab=column.name, horiz=TRUE)
+  text(0, bp, scratch$Name, cex=1, pos=4)
+}
+
+baduns("BOD")
+baduns("Nitrogen.Total")             
+baduns("Phosphorus")           
+baduns("Alkalinity")          
+baduns("Nitrogen.Ammoniacal")
+baduns("Chloride")
+baduns("Nitrite") 
+baduns("Nitrogen.Oxidised") 
+baduns("Orthophosphate")       
+baduns("Silicate")
+baduns("Phosphate")             
+baduns("Conductivity")
+baduns("Turbidity")
+baduns("Solids")
+baduns("Calcium")              
+baduns("Magnesium")
+baduns("Potassium")
+baduns("Sodium")
+@
+
+\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variation Through the Year}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Some of the sites have several measurments taken over the year
+so it would be interesting to see how they vary of the year.
+However, the measurements are for concentration on the inflow.
+Just plotting concentration makes no sense because a high concentration
+and no flow would not contribute to the mere.
+So the concentration is multiplied by the flow.
+
+<<all sites through the year>>=
+# Sites with 9 or more samples.
+scratch <- as.data.frame(table(samples$Name))
+colnames(scratch) <- c("Name", "Freq")
+sites <- merge(sites, scratch, by="Name") # join the tables
+scratch <- sites[sites$Freq >= 8,]
+scratch <- merge(scratch, samples, by = "Name")
+
+# The flows include some comments to the effect that there is no flow so these are made into zeros
+scratch$Flow <- as.numeric(scratch$Flow)
+scratch$Flow[is.na(scratch$Flow)] <- 0
+
+# Let's graph the ones with reasonable amounts of data
+library(ggplot2)
+library(scales)
+timegraph <- function(column.name, df){
+  df[,c(column.name)] <- gsub("[^.0-9]+", "", df[,c(column.name)]) # just the numbers and nothing else
+  df[,c(column.name)] <- as.numeric(df[,c(column.name)])
+  df$total <- df[,c(column.name)] * df$Flow
+  ggplot(df, aes(x = Sample.taken, y = df$total, colour=Name, group=Name)) +
+    geom_line() +
+    scale_x_datetime(date_breaks = "1 month", date_labels = "%b") +
+    xlab("2015-2016") + 
+    ylab(paste0(column.name, " * Flow"))
+}
+
+timegraph("BOD", scratch)
+@
+
+The graph with all the sites on looks a bit chaotic so 
+it might be as well to separate out each of the meres.
+
+<<separate meres through the year>>=
+scratchmere <- scratch[startsWith(scratch$Name, "Cole"), ]
+timegraph("BOD", scratchmere)
+
 @
 
 
