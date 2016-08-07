@@ -122,25 +122,25 @@ pam <- pam(cbind(sites$X, sites$Y), 3)
 library(ggmap)
 map_centre <- c(lon = -2.85, lat = 52.80) # chosen by inspection
 map <- qmap(map_centre) 
-map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering)
+map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering, cex = 2)
 @
 
-<<marton pool cluster, fig.cap="There are 10 sites around Marton Pool.">>=
+<<marton pool cluster, fig.cap="10 sites around Marton Pool.">>=
 map_centre <- c(lon = -3.045, lat = 52.623) # chosen by inspection
 map <- qmap(map_centre, zoom = 15) 
-map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering)
+map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering, cex = 2)
 @
 
-<<brown moss cluster, fig.cap="There are 8 sites around Brown Moss.">>=
+<<brown moss cluster, fig.cap="8 sites around Brown Moss.">>=
 map_centre <- c(lon = -2.653, lat = 52.950) # chosen by inspection
 map <- qmap(map_centre, zoom = 15) 
-map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering)
+map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering, cex = 2)
 @
 
-<<ellesmere cluster, fig.cap="There are 12 sites near Ellesmere (Whitemere, Colemere and Crosemere.">>=
+<<ellesmere cluster, fig.cap="12 sites near Ellesmere (Whitemere, Colemere and Crosemere).">>=
 map_centre <- c(lon = -2.850, lat = 52.883) # chosen by inspection
 map <- qmap(map_centre, zoom = 13) 
-map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering)
+map + geom_point(aes(x=Lng, y=Lat), data=sites, col = pam$clustering, cex = 2)
 @
 
 
