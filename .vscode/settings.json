@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "src"
+    ],
+    "python.pythonPath": "env\\Scripts\\python.exe",
+    "python.testing.pytestEnabled": true
+}
